@@ -20,7 +20,7 @@ h1{margin:0 0 8px;color:#193f79;font-size:clamp(24px,4vw,34px)}h2{font-size:21px
 .matchgrid label{font-weight:600}.matchgrid select,.shortanswer,.orderbox select{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:7px;font:inherit;background:white}
 .shortanswer{min-height:80px;resize:vertical}.hint{font-size:14px;color:#5b6c82;margin:7px 0 0}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
-.page-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0;padding:14px;background:#eef4fc;border-radius:10px}.page-progress{font-weight:bold;color:#193f79}
+
 button{border:0;border-radius:9px;padding:12px 17px;font:inherit;font-weight:bold;cursor:pointer}
 .primary{background:var(--blue);color:white}.secondary{background:#e8eef7;color:#233c60}
 #result{display:none;border:2px solid #b7cce9;border-radius:14px;padding:20px;margin-top:24px;background:#f8fbff}
@@ -43,7 +43,6 @@ button{border:0;border-radius:9px;padding:12px 17px;font:inherit;font-weight:bol
 <input id="studentGroup" type="text" placeholder="Наприклад, ЕГЗ-21">
 </label>
 </div>
-<div id="pageNav" class="page-nav no-print"><button class="secondary" type="button" id="prevPage">← Попередня сторінка</button><span id="pageProgress" class="page-progress">Сторінка 1</span><button class="primary" type="button" id="nextPage">Наступна сторінка →</button></div>
 <form id="quiz"></form>
 <div class="actions no-print">
 <button class="primary" type="button" id="submitBtn">Завершити тест і побачити результат</button>
@@ -103,31 +102,6 @@ questions.forEach((q,i)=>{
  section.innerHTML=`<div class="qmeta">Запитання ${i+1} з ${questions.length} · ${typ}</div><div class="qtitle">${esc(q.title)}</div>${body}<div class="review" id="feedback${i}" hidden></div>`;
  form.appendChild(section);
 });
-const pageSize = 4;
-let currentPage = 0;
-function showQuestionPage() {
-  const cards = [...form.querySelectorAll(".question")];
-  const pageCount = Math.ceil(cards.length / pageSize);
-  cards.forEach((card, index) => {
-    card.style.display = (index >= currentPage * pageSize && index < (currentPage + 1) * pageSize) ? "block" : "none";
-  });
-  document.getElementById("pageProgress").textContent =
-    `Сторінка ${currentPage + 1} із ${pageCount} · Запитання ${currentPage * pageSize + 1}–${Math.min((currentPage + 1) * pageSize, cards.length)} із ${cards.length}`;
-  document.getElementById("prevPage").disabled = currentPage === 0;
-  document.getElementById("nextPage").disabled = currentPage >= pageCount - 1;
-}
-document.getElementById("prevPage").addEventListener("click", () => {
-  if (currentPage > 0) currentPage--;
-  showQuestionPage();
-  document.getElementById("quiz").scrollIntoView({behavior:"smooth", block:"start"});
-});
-document.getElementById("nextPage").addEventListener("click", () => {
-  const pageCount = Math.ceil(questions.length / pageSize);
-  if (currentPage < pageCount - 1) currentPage++;
-  showQuestionPage();
-  document.getElementById("quiz").scrollIntoView({behavior:"smooth", block:"start"});
-});
-showQuestionPage();
 function normalize(s){return s.toLowerCase().replace(/[’'`]/g,"").trim()}
 function evaluate(q,i){
  const fd=new FormData(form);let earned=0,max=1,answerText="";
@@ -152,22 +126,18 @@ function evaluate(q,i){
 }
 document.getElementById("submitBtn").addEventListener("click",()=>{
  const name=document.getElementById("studentName").value.trim();
-  const group=document.getElementById("studentGroup").value.trim();
+ const group=document.getElementById("studentGroup").value.trim();
  if(!name){document.getElementById("studentName").focus();alert("Будь ласка, введіть прізвище та ім’я студента/студентки.");return}
- let total=0;const details=[];
- questions.forEach((q,i)=>{
-  const r=evaluate(q,i);total+=r.earned;details.push(r);
-  const fb=document.getElementById("feedback"+i);fb.hidden=false;
-  fb.innerHTML=`<div class="${r.earned>=1?'correct':r.earned>0?'correct':'incorrect'}">${r.earned>=1?'Зараховано':r.earned>0?'Частково зараховано':'Не зараховано'}</div><div>${esc(r.answerText)}</div><p class="hint">${esc(q.explain)}</p>`;
- });
+ let total=0;
+ questions.forEach((q,i)=>{ total += evaluate(q,i).earned; });
  const mark=Math.max(1,Math.min(12,Math.round(total/questions.length*12)));
- const result=document.getElementById("result");result.style.display="block";
- result.innerHTML=`<h2>Результат виконання</h2><p><strong>Студент/студентка:</strong> ${esc(name)}${document.getElementById("studentClass").value.trim()?" · "+esc(document.getElementById("studentClass").value.trim()):""}</p><div class="score">${mark} балів із 12</div><p>Правильні відповіді та частково виконані завдання: ${total.toFixed(1)} із ${questions.length} можливих балів тесту.</p><p>Оцінка обчислена пропорційно за 12-бальною шкалою.</p><div class="actions no-print"><button class="primary" type="button" onclick="window.print()">Друк / зберегти результат як PDF</button><button class="secondary" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">На початок тесту</button></div><div class="review"><h2>Перевірка відповідей</h2>${details.map((r,i)=>`<div class="review-item"><strong>${i+1}. ${esc(questions[i].title)}</strong><div class="${r.earned>=1?'correct':r.earned>0?'correct':'incorrect'}">${r.earned>=1?'Зараховано':r.earned>0?'Частково зараховано':'Не зараховано'}</div><div>${esc(r.answerText)}</div><p class="hint">${esc(questions[i].explain)}</p></div>`).join("")}</div>`;
- result.scrollIntoView({behavior:"smooth",block:"start"});
+ const result=document.getElementById("result");
+ result.style.display="block";
+ result.innerHTML=`<h2>Результат тесту</h2><p><strong>Студент/студентка:</strong> ${esc(name)}${group?" · Група: "+esc(group):""}</p><div class="score">Оцінка: ${mark} балів із 12</div>`;
  document.getElementById("submitBtn").disabled=true;
-  document.getElementById("pageNav").style.display="none";
-  document.querySelectorAll("#quiz .question").forEach(card => card.style.display="block");
+ result.scrollIntoView({behavior:"smooth",block:"start"});
 });
+
 document.getElementById("screenshotBtn").addEventListener("click",()=>{const h=document.getElementById("screenshotHelp");h.hidden=!h.hidden});
 </script>
 </body>
