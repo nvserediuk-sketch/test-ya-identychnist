@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Підсумковий тест «Я ідентичність»</title>
+<style>
+:root{--ink:#243247;--blue:#2457a7;--pale:#eef4fc;--green:#237447;--red:#a42b2b;--line:#d6deea}
+*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:var(--ink);font:16px/1.5 Arial,sans-serif}
+main{max-width:960px;margin:24px auto;padding:24px;background:#fff;border-radius:18px;box-shadow:0 6px 24px #1b35551a}
+h1{margin:0 0 8px;color:#193f79;font-size:clamp(24px,4vw,34px)}h2{font-size:21px;margin:0 0 10px}
+.intro{color:#526174;margin:0 0 20px}.student{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 24px}
+.student label{flex:1;min-width:220px;font-weight:bold}.student input{display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--line);border-radius:8px;font:inherit}
+.question{border:1px solid var(--line);border-radius:13px;padding:18px;margin:16px 0;background:#fff}
+.qmeta{font-size:13px;color:#5b6c82;font-weight:bold;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.qtitle{font-weight:bold;margin-bottom:12px}.answers{display:grid;gap:8px}
+.option{display:flex;align-items:flex-start;gap:9px;border:1px solid #e1e7f0;border-radius:8px;padding:9px 11px;cursor:pointer}
+.option:hover{background:#f7faff}.option input{margin-top:5px;flex-shrink:0}
+.matchgrid{display:grid;grid-template-columns:1fr 1.3fr;gap:10px;align-items:center}
+.matchgrid label{font-weight:600}.matchgrid select,.shortanswer,.orderbox select{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:7px;font:inherit;background:white}
+.shortanswer{min-height:80px;resize:vertical}.hint{font-size:14px;color:#5b6c82;margin:7px 0 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
+.page-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0;padding:14px;background:#eef4fc;border-radius:10px}.page-progress{font-weight:bold;color:#193f79}
+button{border:0;border-radius:9px;padding:12px 17px;font:inherit;font-weight:bold;cursor:pointer}
+.primary{background:var(--blue);color:white}.secondary{background:#e8eef7;color:#233c60}
+#result{display:none;border:2px solid #b7cce9;border-radius:14px;padding:20px;margin-top:24px;background:#f8fbff}
+.score{font-size:26px;font-weight:bold;color:#193f79}.review{margin-top:15px}.review-item{border-top:1px solid var(--line);padding:12px 0}.correct{color:var(--green);font-weight:bold}.incorrect{color:var(--red);font-weight:bold}
+.notice{background:#fff8e8;border-left:4px solid #e0a52e;padding:12px 14px;border-radius:6px;font-size:14px}
+@media(max-width:600px){main{margin:0;padding:16px;border-radius:0}.matchgrid{grid-template-columns:1fr;gap:5px}.matchgrid select{margin-bottom:8px}}
+@media print{body{background:white}main{box-shadow:none;margin:0;max-width:none}.actions,.no-print{display:none!important}.question{break-inside:avoid}}
+</style>
+</head>
+<body>
+<main>
+<h1>Підсумковий тест «Я ідентичність»</h1>
+<p class="intro">Громадянська освіта · за матеріалом підручника, с. 8–34</p>
+<div class="notice">Тест містить різні типи завдань: вибір однієї відповіді, множинний вибір, встановлення відповідностей, «так/ні» та впорядкування. Максимальна оцінка — 12 балів. Уважно читайте інструкції до кожного завдання.</div>
+<div class="student">
+<label>Прізвище та ім’я студента/студентки
+<input id="studentName" type="text" placeholder="Введіть прізвище та ім’я">
+</label>
+<label>Група
+<input id="studentGroup" type="text" placeholder="Наприклад, ЕГЗ-21">
+</label>
+</div>
+<div id="pageNav" class="page-nav no-print"><button class="secondary" type="button" id="prevPage">← Попередня сторінка</button><span id="pageProgress" class="page-progress">Сторінка 1</span><button class="primary" type="button" id="nextPage">Наступна сторінка →</button></div>
+<form id="quiz"></form>
+<div class="actions no-print">
+<button class="primary" type="button" id="submitBtn">Завершити тест і побачити результат</button>
+<button class="secondary" type="button" onclick="window.print()">Друк / зберегти як PDF</button>
+<button class="secondary" type="button" id="screenshotBtn">Як зробити скріншот</button>
+</div>
+<div id="screenshotHelp" class="notice no-print" hidden>
+<strong>Як зберегти результат:</strong> після завершення тесту прокрутіть сторінку до блоку результатів. У Windows натисніть <strong>Win + Shift + S</strong>, виділіть результат і збережіть або вставте знімок у завдання Google Classroom. Також можна скористатися кнопкою «Друк / зберегти як PDF».
+</div>
+<section id="result" aria-live="polite"></section>
+<p class="hint">Важливо: HTML-тест працює у браузері. Результат автоматично не надсилається до Google Classroom — студент має прикріпити скріншот або PDF до завдання.</p>
+</main>
+<script>
+const questions = [
+ {type:"single",title:"Що найточніше описує поняття «ідентичність»?",options:["Усвідомлення людиною того, ким вона є та до яких спільнот належить","Перелік оцінок за навчальний рік","Тільки громадянство, записане в документі","Виключно професія людини"],answer:0,explain:"Ідентичність пов’язана з усвідомленням людиною себе, своїх характеристик і належності."},
+ {type:"multi",title:"Оберіть твердження, які можуть стосуватися соціальної ідентичності.",options:["Належність до певної спільноти","Мова, якою людина спілкується","Участь у культурних або громадських групах","Колір ручки, якою людина пише сьогодні"],answer:[0,1,2],explain:"Соціальна ідентичність пов’язана з належністю до соціальних і культурних спільнот."},
+ {type:"match",title:"Установіть відповідність між поняттям і його описом.",pairs:[["Особиста ідентичність","Усвідомлення власних особливостей і неповторності"],["Громадянська ідентичність","Відчуття належності до громадянської спільноти"],["Мовна ідентичність","Зв’язок людини з мовою або мовами, які вона вважає важливими для себе"],["Референтна група","Група, думка та цінності якої важливі для людини"]],explain:"Ці поняття описують різні виміри ідентичності та соціального оточення."},
+ {type:"tf",title:"Ідентичність людини може змінюватися протягом життя.",answer:true,explain:"Досвід, обставини, спілкування та нові ролі можуть впливати на ідентичність."},
+ {type:"single",title:"Що таке референтна група?",options:["Будь-яка випадкова група людей у транспорті","Група, з якою людина співвідносить себе та чиї оцінки для неї важливі","Лише група людей одного віку","Група, створена виключно для виконання контрольної роботи"],answer:1,explain:"Референтна група є важливою точкою відліку для поглядів, оцінок і поведінки людини."},
+ {type:"multi",title:"Які приклади можуть бути складниками громадянської ідентичності?",options:["Відчуття належності до громадянської спільноти","Усвідомлення спільних символів і цінностей","Готовність брати участь у житті громади","Відмова визнавати права інших людей"],answer:[0,1,2],explain:"Громадянська ідентичність може включати належність, спільні символи, цінності та участь у громадському житті."},
+ {type:"tf",title:"Людина може одночасно мати кілька ідентичностей.",answer:true,explain:"Наприклад, людина може усвідомлювати себе членом родини, громади, мовної, професійної чи іншої спільноти."},
+ {type:"single",title:"Що означає самовизначення?",options:["Коли інші люди повністю вирішують за людину","Процес осмислення людиною власних цінностей, належності та життєвого напряму","Відмова від будь-яких рішень","Виконання лише чужих очікувань"],answer:1,explain:"Самовизначення пов’язане з усвідомленням себе та власного життєвого вибору."},
+ {type:"match",title:"Установіть відповідність між поняттям і поясненням.",pairs:[["Гідність","Визнання цінності людини та повага до неї"],["Совість","Внутрішня моральна оцінка власних вчинків"],["Відповідальність","Готовність відповідати за свої рішення та їхні наслідки"]],explain:"Гідність, совість і відповідальність пов’язані з моральним вибором та ставленням до себе й інших."},
+ {type:"multi",title:"Які дії демонструють повагу до гідності інших людей?",options:["Вислухати іншу думку без приниження","Не поширювати образливі чутки","Визнавати право іншої людини на власну позицію","Публічно висміювати людину через її відмінності"],answer:[0,1,2],explain:"Повага до гідності передбачає недопущення приниження та визнання цінності кожної людини."},
+ {type:"tf",title:"Совість може допомагати людині оцінювати власні вчинки навіть тоді, коли ніхто не спостерігає.",answer:true,explain:"Совість є внутрішнім моральним орієнтиром і засобом самооцінювання."},
+ {type:"single",title:"Що називають соціалізацією?",options:["Процес засвоєння людиною соціальних норм, цінностей, ролей і способів взаємодії","Лише отримання шкільних оцінок","Виключно зміну місця проживання","Тимчасову відмову від спілкування"],answer:0,explain:"Соціалізація відбувається через засвоєння норм і досвіду життя в суспільстві."},
+ {type:"order",title:"Розташуйте етапи соціалізації в послідовності, наведеній у підручнику.",items:["Післятрудовий етап","Передтрудовий етап","Трудовий етап"],answer:[1,2,0],explain:"Послідовність: передтрудовий, трудовий, післятрудовий етапи."},
+ {type:"match",title:"Установіть відповідність між агентом соціалізації та прикладом його впливу.",pairs:[["Сім’я","Перші правила спілкування, звички та цінності"],["Заклад освіти","Навчання, взаємодія з педагогами й однолітками"],["Група однолітків","Спільні інтереси, норми та досвід ровесників"],["Медіа","Інформація, образи й повідомлення, що впливають на погляди"]],explain:"Соціалізація відбувається під впливом різних людей, груп та суспільних інституцій."},
+ {type:"single",title:"З ким пов’язують концепцію «дзеркального Я»?",options:["Чарльзом Кулі","Ісааком Ньютоном","Альбертом Ейнштейном","Аристотелем"],answer:0,explain:"Концепцію «дзеркального Я» пов’язують із соціологом Чарльзом Кулі."},
+ {type:"tf",title:"На уявлення людини про себе може впливати те, як, на її думку, її сприймають інші.",answer:true,explain:"Це одна з ключових ідей концепції «дзеркального Я»."},
+ {type:"multi",title:"Оберіть можливі чинники формування ідентичності.",options:["Сім’я та близьке оточення","Мова й культура","Особистий досвід і життєві обставини","Лише випадкове число, яке людина побачила"],answer:[0,1,2],explain:"Ідентичність формується під впливом соціального оточення, культури та особистого досвіду."},
+ {type:"multi",title:"Оберіть чинники, через які ідентичність людини може змінюватися протягом життя.",options:["Новий життєвий досвід і навчання","Зміни в соціальному оточенні та ролях","Переосмислення цінностей","Ідентичність ніколи не змінюється"],answer:[0,1,2],explain:"Досвід, навчання, соціальне оточення, ролі та цінності можуть впливати на ідентичність."},
+ {type:"single",title:"Що найкраще характеризує зовнішній погляд на ідентичність?",options:["Як людина сама себе розуміє","Як людину сприймають і визначають інші","Тільки те, що людина записала в щоденнику","Виключно біологічні характеристики"],answer:1,explain:"Зовнішній погляд пов’язаний зі сприйняттям людини іншими; внутрішній — із її власним розумінням себе."},
+ {type:"multi",title:"Які твердження про мову та ідентичність є доречними?",options:["Мова може бути важливою частиною самовідчуття людини","Мовна ідентичність може бути пов’язана з культурою та спільнотою","Мовна ідентичність завжди однакова в усіх людей","Ставлення до мови може змінюватися з досвідом"],answer:[0,1,3],explain:"Мова може бути складником ідентичності, а ставлення до неї залежить від особистого та суспільного досвіду."},
+ {type:"tf",title:"Соціалізація завершується повністю після закінчення школи.",answer:false,explain:"Соціалізація триває впродовж життя, коли людина засвоює нові ролі та досвід."},
+ {type:"single",title:"Який приклад найкраще демонструє громадянську відповідальність у громаді?",options:["Долучитися до волонтерської ініціативи або допомогти громаді","Ігнорувати спільні правила та потреби інших","Поширювати неперевірені чутки про сусідів","Псувати спільне майно"],answer:0,explain:"Громадянська відповідальність виявляється, зокрема, у допомозі громаді, волонтерстві та дотриманні спільних правил."},
+ {type:"order",title:"Упорядкуйте кроки відповідального морального вибору.",items:["Оцінити можливі наслідки","Усвідомити ситуацію та можливі варіанти","Прийняти рішення і відповідати за нього"],answer:[1,0,2],explain:"Спочатку потрібно зрозуміти ситуацію, потім оцінити наслідки та ухвалити відповідальне рішення."},
+ {type:"single",title:"Чому важливо розуміти власну ідентичність?",options:["Це допомагає осмислювати себе, свої цінності та взаємодію з іншими","Це означає, що людина ніколи не змінюється","Це дає право принижувати тих, хто відрізняється","Це позбавляє потреби відповідати за власні дії"],answer:0,explain:"Усвідомлення ідентичності сприяє саморозумінню та взаємодії з іншими людьми."}
+];
+
+const form=document.getElementById("quiz");
+const letters=["А","Б","В","Г","Д","Е"];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+questions.forEach((q,i)=>{
+ const section=document.createElement("section");section.className="question";section.id="q"+i;
+ let body="";
+ if(q.type==="single"||q.type==="multi"){
+  body='<div class="answers">'+q.options.map((o,j)=>`<label class="option"><input type="${q.type==="single"?"radio":"checkbox"}" name="q${i}" value="${j}"><span><strong>${letters[j]}.</strong> ${esc(o)}</span></label>`).join("")+'</div>';
+ }else if(q.type==="tf"){
+  body=`<div class="answers"><label class="option"><input type="radio" name="q${i}" value="true"><span>Так</span></label><label class="option"><input type="radio" name="q${i}" value="false"><span>Ні</span></label></div>`;
+ }else if(q.type==="match"){
+  body='<div class="matchgrid">'+q.pairs.map((p,j)=>`<label for="q${i}m${j}">${esc(p[0])}</label><select id="q${i}m${j}" name="q${i}m${j}"><option value="">Оберіть відповідь…</option>${q.pairs.map((p2,k)=>`<option value="${k}">${esc(p2[1])}</option>`).join("")}</select>`).join("")+'</div>';
+ }else if(q.type==="order"){
+  body='<div class="orderbox">'+q.items.map((item,j)=>`<label class="option"><span style="min-width:28px">${j+1}.</span><span style="flex:1">${esc(item)}</span><select name="q${i}" data-item="${j}" aria-label="Позиція для ${esc(item)}"><option value="">Позиція…</option>${q.items.map((_,k)=>`<option value="${k}">${k+1}</option>`).join("")}</select></label>`).join("")+'</div><p class="hint">Для кожного кроку виберіть його місце в послідовності.</p>';
+ }
+ const typ={single:"Одна правильна відповідь",multi:"Множинний вибір",match:"Установлення відповідностей",tf:"Так / ні",order:"Упорядкування"}[q.type];
+ section.innerHTML=`<div class="qmeta">Запитання ${i+1} з ${questions.length} · ${typ}</div><div class="qtitle">${esc(q.title)}</div>${body}<div class="review" id="feedback${i}" hidden></div>`;
+ form.appendChild(section);
+});
+const pageSize = 4;
+let currentPage = 0;
+function showQuestionPage() {
+  const cards = [...form.querySelectorAll(".question")];
+  const pageCount = Math.ceil(cards.length / pageSize);
+  cards.forEach((card, index) => {
+    card.style.display = (index >= currentPage * pageSize && index < (currentPage + 1) * pageSize) ? "block" : "none";
+  });
+  document.getElementById("pageProgress").textContent =
+    `Сторінка ${currentPage + 1} із ${pageCount} · Запитання ${currentPage * pageSize + 1}–${Math.min((currentPage + 1) * pageSize, cards.length)} із ${cards.length}`;
+  document.getElementById("prevPage").disabled = currentPage === 0;
+  document.getElementById("nextPage").disabled = currentPage >= pageCount - 1;
+}
+document.getElementById("prevPage").addEventListener("click", () => {
+  if (currentPage > 0) currentPage--;
+  showQuestionPage();
+  document.getElementById("quiz").scrollIntoView({behavior:"smooth", block:"start"});
+});
+document.getElementById("nextPage").addEventListener("click", () => {
+  const pageCount = Math.ceil(questions.length / pageSize);
+  if (currentPage < pageCount - 1) currentPage++;
+  showQuestionPage();
+  document.getElementById("quiz").scrollIntoView({behavior:"smooth", block:"start"});
+});
+showQuestionPage();
+function normalize(s){return s.toLowerCase().replace(/[’'`]/g,"").trim()}
+function evaluate(q,i){
+ const fd=new FormData(form);let earned=0,max=1,answerText="";
+ if(q.type==="single"){
+  const v=fd.get("q"+i);earned=String(q.answer)===v?1:0;answerText="Правильна відповідь: "+q.options[q.answer];
+ }else if(q.type==="multi"){
+  const vals=fd.getAll("q"+i).map(Number).sort((a,b)=>a-b),ans=[...q.answer].sort((a,b)=>a-b);
+  earned=vals.length===ans.length&&vals.every((v,j)=>v===ans[j])?1:0;
+  answerText="Правильні варіанти: "+ans.map(j=>q.options[j]).join("; ");
+ }else if(q.type==="tf"){
+  earned=fd.get("q"+i)===String(q.answer)?1:0;answerText="Правильна відповідь: "+(q.answer?"Так":"Ні");
+ }else if(q.type==="match"){
+  let correct=0;q.pairs.forEach((p,j)=>{if(fd.get(`q${i}m${j}`)===String(j))correct++});
+  earned=correct/q.pairs.length;answerText="Правильні відповідності: "+q.pairs.map(p=>p[0]+" — "+p[1]).join("; ");
+ }else if(q.type==="order"){
+  const sels=[...document.querySelectorAll(`#q${i} select[data-item]`)];
+  const chosen=sels.map(s=>s.value);let correct=0;
+  sels.forEach((s,j)=>{if(s.value!==""&&Number(s.value)===q.answer.indexOf(j))correct++});
+  earned=correct/q.items.length;answerText="Правильна послідовність: "+q.answer.map(idx=>q.items[idx]).join(" → ");
+ }
+ return {earned,max,answerText};
+}
+document.getElementById("submitBtn").addEventListener("click",()=>{
+ const name=document.getElementById("studentName").value.trim();
+  const group=document.getElementById("studentGroup").value.trim();
+ if(!name){document.getElementById("studentName").focus();alert("Будь ласка, введіть прізвище та ім’я студента/студентки.");return}
+ let total=0;const details=[];
+ questions.forEach((q,i)=>{
+  const r=evaluate(q,i);total+=r.earned;details.push(r);
+  const fb=document.getElementById("feedback"+i);fb.hidden=false;
+  fb.innerHTML=`<div class="${r.earned>=1?'correct':r.earned>0?'correct':'incorrect'}">${r.earned>=1?'Зараховано':r.earned>0?'Частково зараховано':'Не зараховано'}</div><div>${esc(r.answerText)}</div><p class="hint">${esc(q.explain)}</p>`;
+ });
+ const mark=Math.max(1,Math.min(12,Math.round(total/questions.length*12)));
+ const result=document.getElementById("result");result.style.display="block";
+ result.innerHTML=`<h2>Результат виконання</h2><p><strong>Студент/студентка:</strong> ${esc(name)}${document.getElementById("studentClass").value.trim()?" · "+esc(document.getElementById("studentClass").value.trim()):""}</p><div class="score">${mark} балів із 12</div><p>Правильні відповіді та частково виконані завдання: ${total.toFixed(1)} із ${questions.length} можливих балів тесту.</p><p>Оцінка обчислена пропорційно за 12-бальною шкалою.</p><div class="actions no-print"><button class="primary" type="button" onclick="window.print()">Друк / зберегти результат як PDF</button><button class="secondary" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">На початок тесту</button></div><div class="review"><h2>Перевірка відповідей</h2>${details.map((r,i)=>`<div class="review-item"><strong>${i+1}. ${esc(questions[i].title)}</strong><div class="${r.earned>=1?'correct':r.earned>0?'correct':'incorrect'}">${r.earned>=1?'Зараховано':r.earned>0?'Частково зараховано':'Не зараховано'}</div><div>${esc(r.answerText)}</div><p class="hint">${esc(questions[i].explain)}</p></div>`).join("")}</div>`;
+ result.scrollIntoView({behavior:"smooth",block:"start"});
+ document.getElementById("submitBtn").disabled=true;
+  document.getElementById("pageNav").style.display="none";
+  document.querySelectorAll("#quiz .question").forEach(card => card.style.display="block");
+});
+document.getElementById("screenshotBtn").addEventListener("click",()=>{const h=document.getElementById("screenshotHelp");h.hidden=!h.hidden});
+</script>
+</body>
+</html>
